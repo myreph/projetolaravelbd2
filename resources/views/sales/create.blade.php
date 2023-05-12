@@ -48,17 +48,16 @@
         </div>
     </div>
     <script>
-    const products = @json($products);
     const selectedProductsDiv = document.getElementById('selected-products');
-    const finalValueInput = document.getElementById('final_value'); // Atualizado para 'final_value'
+    const finalValueInput = document.getElementById('final_value');
     const saleForm = document.getElementById('sale-form');
 
     let selectedProducts = [];
-    let finalValue = 0; // Atualizado para 'finalValue'
+    let finalValue = 0;
 
-    function updateFinalValue() { // Atualizado para 'updateFinalValue'
-        finalValue = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0); // Atualizado para 'finalValue'
-        finalValueInput.value = `R$ ${finalValue.toFixed(2).replace('.', ',')}`; // Atualizado para 'finalValueInput'
+    function updateFinalValue() {
+        finalValue = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0);
+        finalValueInput.value = `R$ ${finalValue.toFixed(2).replace('.', ',')}`;
     }
 
     function addProduct(product) {
@@ -72,8 +71,6 @@
 
         renderSelectedProducts();
         updateFinalValue();
-        console.log(selectedProducts);
-
     }
 
     function removeProduct(productId) {
@@ -92,7 +89,6 @@
             const label = document.createElement('label');
             const price = parseFloat(product.price);
             label.textContent = `${product.name} (R$ ${price.toFixed(2).replace('.', ',')}) - Quantidade:`;
-
             productDiv.appendChild(label);
 
             const quantityInput = document.createElement('input');
@@ -119,7 +115,7 @@
             const productInput = document.createElement('input');
             productInput.type = 'hidden';
             productInput.name = 'products[]';
-            productInput.value = JSON.stringify(product);
+            productInput.value = JSON.stringify({id: product.id, quantity: product.quantity});
             productDiv.appendChild(productInput);
 
             selectedProductsDiv.appendChild(productDiv);
@@ -127,29 +123,14 @@
     }
 
     saleForm.addEventListener('submit', (event) => {
-        event.preventDefault(); // previne que a página recarregue
-        console.log('submit event triggered');
-        
+        event.preventDefault();
+
         if (selectedProducts.length === 0) {
             alert('Por favor, adicione ao menos um produto à venda.');
             return;
         }
 
-        let formData = new FormData();
-        selectedProducts.forEach(product => {
-            formData.append('products[]', JSON.stringify(product));
-        });
-
-        fetch(saleForm.action, {
-            method: saleForm.method,
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-        })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error(error));
+        saleForm.submit();
     });
 
     const searchInput = document.getElementById('search');
@@ -159,40 +140,43 @@
         const query = event.target.value;
 
         if (query.length >= 3) {
-    fetch(`/products/search?query=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            searchResults.innerHTML = '';
-
-            data.data.forEach(product => {
-                const result = document.createElement('div');
-                result.classList.add('search-result');
-                result.textContent = product.name;
-                result.dataset.productId = product.id;
-
-                result.addEventListener('mousedown', (event) => {
-                    event.preventDefault(); // previne que a página recarregue
-                    addProduct(product); // Adicione o produto com a quantidade padrão 1
+            fetch(`/products/search?query=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
                     searchResults.innerHTML = '';
-                    searchInput.value = '';
+
+                    data.data.forEach(product => {
+                        const result = document.createElement('div');
+                        result.classList.add('search-result');
+                        result.textContent = product.name;
+                        result.dataset.productId = product.id;
+
+                        result.addEventListener('mousedown', (event) => {
+                            event.preventDefault();
+                            addProduct(product);
+                            searchResults.innerHTML = '';
+                            searchResults.innerHTML = '';
+                            searchInput.value = '';
+
+                            // Limpa o campo de pesquisa e resultados
+
+                        });
+
+                        searchResults.appendChild(result);
+                    });
+                })
+                .catch(function() {
+                    console.log("A requisição falhou.");
                 });
-
-                searchResults.appendChild(result);
-            });
-        })
-        .catch(function() {
-            console.log("A requisição falhou.");
-        });
-} else {
-    searchResults.innerHTML = '';
-}
-});
-
+        } else {
+            searchResults.innerHTML = '';
+        }
+    });
 </script>
 </x-app-layout>
         
