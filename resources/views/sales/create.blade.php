@@ -1,14 +1,14 @@
 <x-app-layout>
-<style>
-    .search-result {
-        padding: 0.5rem;
-        cursor: pointer;
-    }
+    <style>
+        .search-result {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
 
-    .search-result:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-    }
-</style>
+        .search-result:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    </style>
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -24,9 +24,10 @@
                         @csrf
 
                         <div class="relative">
-    <input type="text" id="search" class="form-control" placeholder="Buscar produto...">
-    <div id="search-results" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-md shadow-lg" style="max-width: 100%;"></div>
-</div>
+                            <input type="text" id="search" class="form-control" placeholder="Buscar produto...">
+                            <div id="search-results" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-md shadow-lg" style="max-width: 100%;"></div>
+                        </div>
+
                         <div id="selected-products" class="my-4"></div>
 
                         <div class="form-group">
@@ -47,185 +48,121 @@
         </div>
     </div>
     <script>
-    const products = @json($products);
-    const selectedProductsDiv = document.getElementById('selected-products');
-    const subtotalInput = document.getElementById('subtotal');
-    const saleForm = document.getElementById('sale-form');
+        const products = @json($products);
+        const selectedProductsDiv = document.getElementById('selected-products');
+        const subtotalInput = document.getElementById('subtotal');
+        const saleForm = document.getElementById('sale-form');
 
-    let selectedProducts = [];
-    let subtotal = 0;
+        let selectedProducts = [];
+        let subtotal = 0;
 
-    function updateSubtotal() {
-        subtotal = selectedProducts.reduce((acc, product) => acc + (product.price * product.quantity), 0);
-        subtotalInput.value = `R$ ${subtotal.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
-    }
-
-    function addProduct(product, quantity) {
-        const productIndex = selectedProducts.findIndex(p => p.id === product.id);
-
-        if (productIndex === -1) {
-            selectedProducts.push({ ...product, quantity });
-        } else {
-            selectedProducts[productIndex].quantity += quantity;
+        function updateSubtotal() { 
+            subtotal = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0);
+            subtotalInput.value = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
         }
 
-        renderSelectedProducts();
-        updateSubtotal();
-    }
+        function addProduct(product) {
+            const productIndex = selectedProducts.findIndex(p => p.id === product.id);
 
-    function removeProduct(productId) {
-        selectedProducts = selectedProducts.filter(product => product.id !== productId);
-        renderSelectedProducts();
-        updateSubtotal();
-    }
+            if (productIndex === -1) {
+                selectedProducts.push({ ...product, quantity: 1 });
+            } else {
+                selectedProducts[productIndex].quantity += 1;
+            }
 
-    function renderSelectedProducts() {
-        selectedProductsDiv.innerHTML = '';
+            renderSelectedProducts();
+            updateSubtotal();
+        }
 
-        selectedProducts.forEach(product => {
-            const productDiv = document.createElement('div');
-            productDiv.classList.add('mb-2');
+        function removeProduct(productId) {
+            selectedProducts = selectedProducts.filter(product => product.id !== productId);
+            renderSelectedProducts();
+            updateSubtotal();
+        }
 
-            const label = document.createElement('label');
-            label.textContent = `${product.name} (R$ ${product.price.toFixed(2).replace('.', ',')}) - Quantidade:`;
+        function renderSelectedProducts() {
+            selectedProductsDiv.innerHTML = '';
 
-            productDiv.appendChild(label);
+            selectedProducts.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('mb-2');
 
-            const quantityInput = document.createElement('input');
-            quantityInput.type = 'number';
-            quantityInput.min = 1;
-            quantityInput.value = product.quantity;
-            quantityInput.style.width = '50px';
-            quantityInput.addEventListener('change', () => {
-                product.quantity = parseInt(quantityInput.value);
-                updateSubtotal();
+                const label = document.createElement('label');
+                const price = parseFloat(product.price);
+                label.textContent = `${product.name} (R$ ${price.toFixed(2).replace('.', ',')}) - Quantidade:`;
+
+                productDiv.appendChild(label);
+
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.min = 1;
+                quantityInput.value = product.quantity;
+                quantityInput.style.width = '50px';
+                quantityInput.addEventListener('change', () => {
+                    product.quantity = parseInt(quantityInput.value);
+                    updateSubtotal();
+                });
+
+                productDiv.appendChild(quantityInput);
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remover';
+                removeButton.classList.add('btn', 'btn-danger', 'ml-2');
+                removeButton.addEventListener('click', () => {
+                    removeProduct(product.id);
+                });
+
+                productDiv.appendChild(removeButton);
+
+                const productInput = document.createElement('input');
+                productInput.type = 'hidden';
+                productInput.name = 'products[]';
+                productInput.value = JSON.stringify(product);
+                productDiv.appendChild(productInput);
+
+                selectedProductsDiv.appendChild(productDiv);
             });
+        }
 
-            productDiv.appendChild(quantityInput);
-
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'Remover';
-            removeButton.classList.add('btn', 'btn-danger', 'ml-2');
-            removeButton.addEventListener('click', () => {
-                removeProduct(product.id);
-            });
-
-            productDiv.appendChild(removeButton);
-
-            selectedProductsDiv.appendChild(productDiv);
+        saleForm.addEventListener('submit', (event) => {
+            if (selectedProducts.length === 0) {
+                event.preventDefault();
+                alert('Por favor, adicione ao menos um produto à venda.');
+            }
         });
-    }
 
-    saleForm.addEventListener('submit', (event) => {
-        if (selectedProducts.length === 0) {
-            event.preventDefault();
-            alert('Por favor, adicione ao menos um produto à venda.');
-        }
-    });
+        const searchInput = document.getElementById('search');
+        const searchResults = document.getElementById('search-results');
 
-    const searchInput = document.getElementById('search');
-    const searchResults = document.getElementById('search-results');
+        searchInput.addEventListener('input', (event) => {
+            const query = event.target.value;
 
-    searchInput.addEventListener('input', (event) => {
-        const query = event.target.value;
+            if (query.length >= 3) {
+                fetch(`/products/search?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        searchResults.innerHTML = '';
 
-        if (query.length >= 3) {
-            fetch(`/products/search?query=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    searchResults.innerHTML = '';
+                        data.data.forEach(product => {
+                            const result = document.createElement('div');
+                            result.classList.add('search-result');
+                            result.textContent = product.name;
+                            result.dataset.productId = product.id;
 
-                    data.data.forEach(product => {
-                        const result = document.createElement('div');
-                        result.classList.add('search-result');
-                        result.textContent = product.name;
-                        result.dataset.productId = product.id;
+                            result.addEventListener('mousedown', (event) => {
+                                event.preventDefault(); // previne que a página recarregue
+                                addProduct(product); // Adicione o produto com a quantidade padrão 1
+                                searchResults.innerHTML = '';
+                                searchInput.value = '';
+                            });
 
-                        // Adicione o campo de entrada da quantidade
-                        const quantityInput = document.createElement('input');
-                        quantityInput.type = 'number';
-                        quantityInput.min = 1;
-                        quantityInput.value = 1;
-                        quantityInput.style.width = '50px';
-                        quantityInput.style.marginLeft = '5px';
-                        quantityInput.addEventListener('change', (event) => {
-                            updateQuantityInput(result, parseInt(event.target.value));
+                            searchResults.appendChild(result);
                         });
-                        result.appendChild(quantityInput);
-
-                        result.addEventListener('mousedown', (event) => {
-    event.preventDefault(); // previne que a página recarregue
-    const quantityInput = result.querySelector('input[type=number]');
-    const quantity = parseInt(quantityInput.value);
-    addProduct(product, quantity); // Use a quantidade fornecida
-    searchResults.innerHTML = '';
-    searchInput.value = '';
-});
-
-function updateQuantityInput(result, quantity) {
-    const productId = result.dataset.productId;
-    const productIndex = selectedProducts.findIndex(p => p.id === productId);
-    if (productIndex !== -1) {
-        selectedProducts[productIndex].quantity = quantity;
-        renderSelectedProducts();
-        updateSubtotal();
-    }
-}
-
-function addProduct(product, quantity) {
-    const productIndex = selectedProducts.findIndex(p => p.id === product.id);
-
-    if (productIndex === -1) {
-        selectedProducts.push({ ...product, quantity });
-    } else {
-        selectedProducts[productIndex].quantity += quantity;
-    }
-
-    renderSelectedProducts();
-    updateSubtotal();
-}
-
-function removeProduct(productId) {
-    selectedProducts = selectedProducts.filter(product => product.id !== productId);
-    renderSelectedProducts();
-    updateSubtotal();
-}
-
-function renderSelectedProducts() {
-    selectedProductsDiv.innerHTML = '';
-
-    selectedProducts.forEach(product => {
-        const productDiv = document.createElement('div');
-        productDiv.classList.add('mb-2');
-
-        const label = document.createElement('label');
-        label.textContent = `${product.name} (R$ ${product.price.toFixed(2).replace('.', ',')}) - Quantidade:`;
-
-        productDiv.appendChild(label);
-
-        const quantityInput = document.createElement('input');
-        quantityInput.type = 'number';
-        quantityInput.min = 1;
-        quantityInput.value = product.quantity;
-        quantityInput.style.width = '50px';
-        quantityInput.addEventListener('change', () => {
-            updateQuantityInput(result, parseInt(quantityInput.value));
+                    });
+            } else {
+                searchResults.innerHTML = '';
+            }
         });
-
-        productDiv.appendChild(quantityInput);
-
-        const removeButton = document.createElement('button');
-        removeButton.textContent = 'Remover';
-        removeButton.classList.add('btn', 'btn-danger', 'ml-2');
-        removeButton.addEventListener('click', () => {
-            removeProduct(product.id);
-        });
-
-        productDiv.appendChild(removeButton);
-
-        selectedProductsDiv.appendChild(productDiv);
-    });
-}
-</script>
+    </script>
 </x-app-layout>
-
+        

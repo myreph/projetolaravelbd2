@@ -42,93 +42,92 @@
                         </div>
 
                         <div class="form-group{{ $errors->has('price') ? ' has-error' : '' }}">
-    <label for="price" class="col-md-4 control-label">Preço</label>
-    <div class="col-md-6">
-    <input id="price" type="text" class="form-control" name="price" value="{{ old('price', number_format($product->price, 2, ',', '.')) }}" required>
-        @if ($errors->has('price'))
-            <span class="help-block">
-                <strong>{{ $errors->first('price') }}</strong>
-            </span>
-        @endif
-    </div>
-</div>
-<div class="form-group">
-                            <label for="unit_of_measure" class="col-md-4 control-label">Unidade de Medida</label>
-
+                            <label for="price" class="col-md-4 control-label">Preço</label>
                             <div class="col-md-6">
-                            <select id="unit_of_measure" name="unit_of_measure" class="form-control">
-    <option value="unidades" {{ $product->measure == 'unidades' ? 'selected' : '' }}>Unidades</option>
-    <option value="litros" {{ $product->measure == 'litros' ? 'selected' : '' }}>Litros</option>
-    <option value="quilos" {{ $product->measure == 'quilos' ? 'selected' : '' }}>Quilos</option>
-    <option value="metros" {{ $product->measure == 'metros' ? 'selected' : '' }}>Metros</option>
-</select>
-
+                                <input id="price" type="text" class="form-control" name="price" value="{{ old('price', number_format($product->price, 2, ',', '')) }}" required>
+                                @if ($errors->has('price'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('price') }}</strong>
+                                    </span>
+                                @endif
                             </div>
                         </div>
 
-
-                        <div class="form-group{{ $errors->has('quantity') ? ' has-error' : '' }}">
-                            <label for="quantity" class="col-md-4 control-label">Quantidade</label>
-
+                        <div class="form-group">
+                            <label for="unit_of_measure" class="col-md-4 control-label">Unidade de Medida</label>
                             <div class="col-md-6">
-    <input id="quantity" type="number" class="form-control" name="quantity" value="{{ old('quantity') }}" required>
+                                <select id="unit_of_measure" name="unit_of_measure" class="form-control">
+                                    <option value="unidade" {{ $product->measure == 'unidade' ? 'selected' : '' }}>Unidade</option>
+                                    <option value="kg" {{ $product->measure == 'kg' ? 'selected' : '' }}>Quilograma (kg)</option>
+                                    <option value="g" {{ $product->measure == 'g' ? 'selected' : '' }}>Grama (g)</option>
+                                    <option value="l" {{ $product->measure == 'l' ? 'selected' : '' }}>Litro (l)</option>
+                                    <option value="ml" {{ $product->measure == 'ml' ? 'selected' : '' }}>Metro (l)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group{{ $errors->has('quantity') ? ' has-error' : '' }}">
+                        <label for="quantity" class="col-md-4 control-label">Quantidade</label>
+                        <div class="col-md-6">
+                            <input id="quantity" type="number" class="form-control" name="quantity" value="{{ old('quantity', $product->quantity) }}" required>
+                            @if ($errors->has('quantity'))
+                                <span class="help-block">
+                                    <strong>{{ $errors->first('quantity') }}</strong>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
 
-    @if ($errors->has('quantity'))
-        <span class="help-block">
-            <strong>{{ $errors->first('quantity') }}</strong>
-        </span>
-    @endif
-</div>
+                    <div class="form-group{{ $errors->has('inventories_id') ? ' has-error' : '' }}">
+                        <label for="inventories_id" class="col-md-4 control-label">Inventário</label>
+                        <div class="col-md-6">
+                            <select name="inventories_id" id="inventories_id" class="form-control">
+                                <option value="">Selecione um inventário</option>
+                                @foreach($inventories as $inventory)
+                                    <option value="{{ $inventory->id }}" {{ $product->inventories_id == $inventory->id ? 'selected' : '' }}>{{ $inventory->name }}</option>
+                                @endforeach
+                            </select>
+                            @if ($errors->has('inventories_id'))
+                                <span class="help-block">
+                                    <strong>{{ $errors->first('inventories_id') }}</strong>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                            <div class="col-md-6 col-md-offset-4">
+                                <button type="submit" class="btn btn-primary">
+                                    Salvar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<script>
-function formatQuantity(input) {
-  var num = input.value.replace(/\./g,'').replace(/,/g,'.');
-  if(!isNaN(num)){
-     num = parseFloat(num).toFixed(2);
-     input.value = num.toString().replace(/\./g,',');
-  }
-}
-</script>
 
-
-<div class="form-group{{ $errors->has('inventories_id') ? ' has-error' : '' }}">
-    <label for="inventories_id" class="col-md-4 control-label">Inventário</label>
-
-    <div class="col-md-6">
-        <select name="inventories_id" id="inventories_id" class="form-control">
-            <option value="">Selecione um inventário</option>
-            @foreach($inventories as $inventory)
-                <option value="{{ $inventory->id }}" {{ old('inventories_id') == $inventory->id ? 'selected' : '' }}>{{ $inventory->name }}</option>
-            @endforeach
-        </select>
-
-        @if ($errors->has('inventories_id'))
-            <span class="help-block">
-                <strong>{{ $errors->first('inventories_id') }}</strong>
-            </span>
-        @endif
-    </div>
-</div>
-
-<div class="form-group">
-    <div class="col-md-6 col-md-offset-4">
-    <button type="submit" class="btn btn-primary">
-    Salvar
-</button>
-
-    </div>
-</div>
 <script>
     const priceInput = document.getElementById('price');
     priceInput.addEventListener('input', (event) => {
         let value = event.target.value;
         // Remove todos os caracteres que não são dígitos
         value = value.replace(/\D/g, '');
-        // Formata o preço para ter duas casas decimais
-        value = (value/100).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        // Remove os zeros à esquerda
+        value = value.replace(/^0+/, '');
+        // Adiciona os zeros à esquerda novamente, se necessário
+        if (value.length < 3) {
+            value = value.padStart(3, '0');
+        }
+        // Insere a vírgula no formato correto
+        const parts = value.match(/^(\d+)(\d{2})$/);
+        if (parts) {
+            value = `${parts[1]},${parts[2]}`;
+        }
         // Atualiza o valor do input
         event.target.value = value;
     });
 </script>
 </x-app-layout>
+

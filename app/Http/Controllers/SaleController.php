@@ -5,16 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SaleController extends Controller
 {
-    public function create()
-{
-    $products = Product::all();
-    return view('sales.create', compact('products'));
-}
+    public function test()
+    {
+        $sales = Sale::all();
+        return view('sales.index', compact('sales'));
+    }
+        
+    public function index()
+    {
+        $sales = Sale::all();
+        return view('sales.index', compact('sales'));
+    }
 
-public function store(Request $request)
+    public function create()
+    {
+        $products = Product::all();
+        $subtotal = 0; // Adicione esta linha para definir o subtotal inicial como zero
+        return view('sales.create', compact('products', 'subtotal'));
+    }
+    
+    public function store(Request $request)
 {
     $request->validate([
         'products' => 'required|array',
@@ -22,34 +36,35 @@ public function store(Request $request)
         'products.*.quantity' => 'required|integer|min:1',
     ]);
 
-    $final_value = 0;
+    DB::transaction(function () use ($request) {
+        $products = $request->input('products');
+        $finalValue = 0;
+        $errors = [];
 
-    foreach ($request->products as $item) {
-        $product = Product::find($item['id']);
+        foreach ($products as $product) {
+            $productModel = Product::findOrFail($product['id']);
+            $quantity = $product['quantity'];
 
-        if ($item['quantity'] > $product->quantity) {
-            return redirect()->back()->withErrors(['quantity' => 'A quantidade solicitada é maior que o estoque disponível.']);
+            if ($quantity > $productModel->quantity) {
+                $errors[] = "{$productModel->name}: A quantidade solicitada é maior que o estoque disponível.";
+            } else {
+                $productModel->quantity -= $quantity;
+                $productModel->save();
+                $finalValue += $productModel->price * $quantity;
+            }
         }
 
-        // Atualize a quantidade do produto no estoque
-        $product->quantity -= $item['quantity'];
-        $product->save();
+        if (!empty($errors)) {
+            return redirect()->back()->withErrors($errors);
+        }
 
-        // Calcule o valor final da venda
-        $final_value += $product->price * $item['quantity'];
-    }
+        Sale::create([
+            'final_value' => $finalValue,
+            'sales_date' => now(),
+        ]);
+    });
 
-    // Armazene a venda no banco de dados
-    $sale = Sale::create([
-        'final_value' => $final_value,
-        'sales_date' => date('Y-m-d'),
-    ]);
-
-    // Vincule os produtos à venda
-    $sale->products()->attach(collect($request->products)->pluck('id', 'quantity')->toArray());
-
-    return redirect()->route('sales.create')->with('success', 'Venda realizada com sucesso!');
+    return redirect()->route('sales.index')->with('success', 'Venda realizada com sucesso!');
 }
-
 
 }

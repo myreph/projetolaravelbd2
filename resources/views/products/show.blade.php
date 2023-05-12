@@ -14,7 +14,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ $product->description }}</h5>
                         <p class="card-text">
-                            <strong>Preço: </strong> R$ {{ number_format($product->price/100, 2, ',', '.') }}<br>
+                            <strong>Preço: </strong> R$ {{ number_format($product->price, 2, ',', '.') }}<br>
                             <strong>Unidade de Medida: </strong> {{ $product->measure }}<br>
                             <strong>Quantidade: </strong> {{ $product->quantity }}<br>
                             <strong>Inventário: </strong> {{ $product->inventory->name }}<br>

@@ -41,18 +41,18 @@
                         </div>
 
                         <div class="form-group{{ $errors->has('price') ? ' has-error' : '' }}">
-                            <label for="price" class="col-md-4 control-label">Preço</label>
+    <label for="price" class="col-md-4 control-label">Preço</label>
 
-                            <div class="col-md-6">
-                                <input id="price" type="text" class="form-control" name="price" value="{{ old('price') }}" required>
+    <div class="col-md-6">
+        <input id="price" type="text" class="form-control" name="price" value="{{ old('price', $product->price_formatted) }}" required>
 
-                                @if ($errors->has('price'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('price') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
+        @if ($errors->has('price'))
+            <span class="help-block">
+                <strong>{{ $errors->first('price') }}</strong>
+            </span>
+        @endif
+    </div>
+</div>
 
                         <div class="form-group">
                             <label for="unit_of_measure" class="col-md-4 control-label">Unidade de Medida</label>
@@ -112,8 +112,17 @@
         let value = event.target.value;
         // Remove todos os caracteres que não são dígitos
         value = value.replace(/\D/g, '');
-        // Formata o preço para ter duas casas decimais
-        value = (value/100).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        // Remove os zeros à esquerda
+        value = value.replace(/^0+/, '');
+        // Adiciona os zeros à esquerda novamente, se necessário
+        if (value.length < 3) {
+            value = value.padStart(3, '0');
+        }
+        // Insere a vírgula no formato correto
+        const parts = value.match(/^(\d+)(\d{2})$/);
+        if (parts) {
+            value = `${parts[1]},${parts[2]}`;
+        }
         // Atualiza o valor do input
         event.target.value = value;
     });

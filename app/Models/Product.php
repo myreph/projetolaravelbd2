@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use NumberFormatter;
 
 class Product extends Model
 {
@@ -27,16 +26,14 @@ class Product extends Model
     {
         return $this->belongsToMany(Sale::class)->withPivot('quantity');
     }
-
-    public function getPriceFormattedAttribute()
-    {
-        $formatter = new NumberFormatter('pt-BR', NumberFormatter::CURRENCY);
-
-        return $formatter->formatCurrency($this->attributes['price'], 'BRL');
-    }
-
     public function setPriceAttribute($value)
     {
-        $this->attributes['price'] = str_replace(',', '.', str_replace('.', '', $value));
+        $this->attributes['price'] = str_replace(',', '.', $value);
+    }
+    public function getPriceFormattedAttribute()
+    {
+        // Defina a formatação do preço aqui
+        return number_format($this->price, 2, ',', '.');
     }
 }
+

@@ -15,7 +15,8 @@
         "laravel/telescope": "^4.14",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
-        "livewire/livewire": "^2.11"
+        "livewire/livewire": "^2.11",
+        "moneyphp/money": "^4.1"
     },
     "require-dev": {
         "appzcoder/crud-generator": "^3.3",

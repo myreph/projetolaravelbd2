@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use App\Models\Inventory;
-use App\Http\Requests\ProductRequest;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -19,16 +19,20 @@ class ProductController extends Controller
     {
         $inventories = Inventory::all();
         $unitsOfMeasure = ['unidade', 'kg', 'g', 'l', 'ml']; // unidades fixas
-        return view('products.create', compact('inventories', 'unitsOfMeasure'));
+
+        // Definir $price_formatted como null por padrão
+        $product = new Product(['price_formatted' => null]);
+
+        return view('products.create', compact('product', 'inventories', 'unitsOfMeasure'));
     }
 
     public function search(Request $request)
-{
-    $search = $request->get('query');
-    $products = Product::where('name', 'LIKE', "%{$search}%")->get();
+    {
+        $search = $request->get('query');
+        $products = Product::where('name', 'LIKE', "%{$search}%")->get();
 
-    return response()->json(['data' => $products]);
-}
+        return response()->json(['data' => $products]);
+    }
 
     public function store(ProductRequest $request)
     {
@@ -44,7 +48,7 @@ class ProductController extends Controller
         $product = new Product([
             'name' => $request->name,
             'description' => $request->description,
-            'price' => str_replace(',', '.', str_replace('.', '', $request->price)),
+            'price' => $request->price,
             'measure' => $request->unit_of_measure,
             'quantity' => $request->quantity,
             'inventories_id' => $request->inventories_id
@@ -68,35 +72,32 @@ class ProductController extends Controller
         $unitsOfMeasure = ['unidade', 'kg', 'g', 'l', 'ml']; // unidades fixas
         return view('products.edit', compact('product', 'inventories', 'unitsOfMeasure'));
     }
-
-    public function update(ProductRequest $request, $id)
-{
-    try {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
+    public function update(Request $request, Product $product)
+    {
+        $request->merge(['price' => str_replace(',', '.', str_replace('.', '', $request->price))]);
+    
+        $this->validate($request, [
+            'name' => 'required|max:255',
+            'description' => 'max:255',
             'price' => 'required|numeric',
-            'unit_of_measure' => 'required|string|max:255',
-            'quantity' => 'required|integer|min:1',
-            'inventories_id' => 'required|exists:inventories,id'
+            'unit_of_measure' => 'required',
+            'quantity' => 'required|integer',
+            'inventories_id' => 'required|exists:inventories,id',
         ]);
-
-        $product = Product::findOrFail($id);
-        $product->name = $validated['name'];
-        $product->description = $validated['description'];
-        $product->price = $validated['price'];
-        $product->measure = $validated['unit_of_measure'];
-        $product->quantity = $validated['quantity'];
-        $product->inventories_id = $validated['inventories_id'];
+    
+        $product->name = $request->input('name');
+        $product->description = $request->input('description');
+        $product->price = $request->input('price');
+        $product->unit_of_measure = $request->input('unit_of_measure');
+        $product->quantity = $request->input('quantity');
+        $product->inventories_id = $request->input('inventories_id');
+        
         $product->save();
-
-        return redirect()->route('products.index')->with('success', 'Produto atualizado com sucesso!');
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return back()->withErrors($e->errors())->withInput();
+    
+        return redirect()->route('products.index')
+                         ->with('success', 'Produto atualizado com sucesso!');
     }
-}
-
-
+    
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
@@ -105,3 +106,4 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produto deletado com sucesso!');
     }
 }
+

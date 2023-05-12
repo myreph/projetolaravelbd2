@@ -22,6 +22,11 @@ Route::resource('products', ProductController::class);
 
 Route::get('/sales/create', [\App\Http\Controllers\SaleController::class, 'create'])->name('sales.create');
 Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
+
+Route::get('/sales/test', [SaleController::class, 'test'])->name('sales.test');
+
 
 Route::middleware([
     'auth:sanctum',
