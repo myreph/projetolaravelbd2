@@ -41,6 +41,9 @@ class SaleController extends Controller
         $finalValue = 0;
         $errors = [];
 
+        $sale = new Sale();
+        $sale->sales_date = now();
+
         foreach ($products as $product) {
             $productModel = Product::findOrFail($product['id']);
             $quantity = $product['quantity'];
@@ -51,6 +54,8 @@ class SaleController extends Controller
                 $productModel->quantity -= $quantity;
                 $productModel->save();
                 $finalValue += $productModel->price * $quantity;
+
+                $sale->products()->attach($productModel->id, ['quantity' => $quantity]);
             }
         }
 
@@ -58,10 +63,8 @@ class SaleController extends Controller
             return redirect()->back()->withErrors($errors);
         }
 
-        Sale::create([
-            'final_value' => $finalValue,
-            'sales_date' => now(),
-        ]);
+        $sale->final_value = $finalValue;
+        $sale->save();
     });
 
     return redirect()->route('sales.index')->with('success', 'Venda realizada com sucesso!');

@@ -31,9 +31,9 @@
                         <div id="selected-products" class="my-4"></div>
 
                         <div class="form-group">
-                            <label for="subtotal" class="col-md-4 control-label">Subtotal</label>
+                            <label for="final_value" class="col-md-4 control-label">Final Value</label>
                             <div class="col-md-6">
-                                <input type="text" id="subtotal" class="form-control" readonly value="R$ 0,00">
+                                <input type="text" id="final_value" class="form-control" readonly value="R$ 0,00">
                             </div>
                         </div>
 
@@ -48,18 +48,18 @@
         </div>
     </div>
     <script>
-        const products = @json($products);
-        const selectedProductsDiv = document.getElementById('selected-products');
-        const subtotalInput = document.getElementById('subtotal');
-        const saleForm = document.getElementById('sale-form');
+    const products = @json($products);
+    const selectedProductsDiv = document.getElementById('selected-products');
+    const finalValueInput = document.getElementById('final_value'); // Atualizado para 'final_value'
+    const saleForm = document.getElementById('sale-form');
 
-        let selectedProducts = [];
-        let subtotal = 0;
+    let selectedProducts = [];
+    let finalValue = 0; // Atualizado para 'finalValue'
 
-        function updateSubtotal() { 
-            subtotal = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0);
-            subtotalInput.value = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
-        }
+    function updateFinalValue() { // Atualizado para 'updateFinalValue'
+        finalValue = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0); // Atualizado para 'finalValue'
+        finalValueInput.value = `R$ ${finalValue.toFixed(2).replace('.', ',')}`; // Atualizado para 'finalValueInput'
+    }
 
         function addProduct(product) {
             const productIndex = selectedProducts.findIndex(p => p.id === product.id);
@@ -71,13 +71,15 @@
             }
 
             renderSelectedProducts();
-            updateSubtotal();
+            updateFinalValue();
+            console.log(selectedProducts);
+
         }
 
         function removeProduct(productId) {
             selectedProducts = selectedProducts.filter(product => product.id !== productId);
             renderSelectedProducts();
-            updateSubtotal();
+            updateFinalValue();
         }
 
         function renderSelectedProducts() {
@@ -100,7 +102,7 @@
                 quantityInput.style.width = '50px';
                 quantityInput.addEventListener('change', () => {
                     product.quantity = parseInt(quantityInput.value);
-                    updateSubtotal();
+                    updateFinalValue();
                 });
 
                 productDiv.appendChild(quantityInput);
@@ -125,6 +127,7 @@
         }
 
         saleForm.addEventListener('submit', (event) => {
+            console.log('submit event triggered');
             if (selectedProducts.length === 0) {
                 event.preventDefault();
                 alert('Por favor, adicione ao menos um produto à venda.');

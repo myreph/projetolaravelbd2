@@ -15,9 +15,4 @@ class Sale extends Model
     {
         return $this->belongsToMany(Product::class)->withPivot('quantity');
     }
-
-    public function product()
-    {
-        return $this->belongsTo(Product::class, 'id_product');
-    }
 }
