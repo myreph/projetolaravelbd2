@@ -8,13 +8,7 @@ use App\Models\Sale;
 use App\Models\Product;
 
 class SaleController extends Controller
-{
-    public function test()
-    {
-        $sales = Sale::all();
-        return view('sales.index', compact('sales'));
-    }
-        
+{    
     public function index()
     {
         $sales = Sale::all();

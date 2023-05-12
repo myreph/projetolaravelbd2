@@ -48,135 +48,134 @@
         </div>
     </div>
     <script>
-    const selectedProductsDiv = document.getElementById('selected-products');
-    const finalValueInput = document.getElementById('final_value');
-    const saleForm = document.getElementById('sale-form');
+        const selectedProductsDiv = document.getElementById('selected-products');
+        const finalValueInput = document.getElementById('final_value');
+        const saleForm = document.getElementById('sale-form');
 
-    let selectedProducts = [];
-    let finalValue = 0;
+        let selectedProducts = [];
+        let finalValue = 0;
 
-    function updateFinalValue() {
-        finalValue = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0);
-        finalValueInput.value = `R$ ${finalValue.toFixed(2).replace('.', ',')}`;
-    }
-
-    function addProduct(product) {
-        const productIndex = selectedProducts.findIndex(p => p.id === product.id);
-
-        if (productIndex === -1) {
-            selectedProducts.push({ ...product, quantity: 1 });
-        } else {
-            selectedProducts[productIndex].quantity += 1;
+        function updateFinalValue() {
+            finalValue = selectedProducts.reduce((acc, product) => acc + (parseFloat(product.price) * product.quantity), 0);
+            finalValueInput.value = `R$ ${finalValue.toFixed(2).replace('.', ',')}`;
         }
 
-        renderSelectedProducts();
-        updateFinalValue();
-    }
+        function addProduct(product) {
+            const productIndex = selectedProducts.findIndex(p => p.id === product.id);
 
-    function removeProduct(productId) {
-        selectedProducts = selectedProducts.filter(product => product.id !== productId);
-        renderSelectedProducts();
-        updateFinalValue();
-    }
+            if (productIndex === -1) {
+                selectedProducts.push({ ...product, quantity: 1 });
+            } else {
+                selectedProducts[productIndex].quantity += 1;
+            }
 
-    function renderSelectedProducts() {
-        selectedProductsDiv.innerHTML = '';
-
-        selectedProducts.forEach(product => {
-            const productDiv = document.createElement('div');
-            productDiv.classList.add('mb-2');
-
-            const label = document.createElement('label');
-            const price = parseFloat(product.price);
-            label.textContent = `${product.name} (R$ ${price.toFixed(2).replace('.', ',')}) - Quantidade:`;
-            productDiv.appendChild(label);
-
-            const quantityInput = document.createElement('input');
-            quantityInput.type = 'number';
-            quantityInput.min = 1;
-            quantityInput.value = product.quantity;
-            quantityInput.style.width = '50px';
-            quantityInput.addEventListener('change', () => {
-                product.quantity = parseInt(quantityInput.value);
-                updateFinalValue();
-            });
-
-            productDiv.appendChild(quantityInput);
-
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'Remover';
-            removeButton.classList.add('btn', 'btn-danger', 'ml-2');
-            removeButton.addEventListener('click', () => {
-                removeProduct(product.id);
-            });
-
-            productDiv.appendChild(removeButton);
-
-            const productInput = document.createElement('input');
-            productInput.type = 'hidden';
-            productInput.name = 'products[]';
-            productInput.value = JSON.stringify({id: product.id, quantity: product.quantity});
-            productDiv.appendChild(productInput);
-
-            selectedProductsDiv.appendChild(productDiv);
-        });
-    }
-
-    saleForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        if (selectedProducts.length === 0) {
-            alert('Por favor, adicione ao menos um produto à venda.');
-            return;
+            renderSelectedProducts();
+            updateFinalValue();
         }
 
-        saleForm.submit();
-    });
+        function removeProduct(productId) {
+            selectedProducts = selectedProducts.filter(product => product.id !== productId);
+            renderSelectedProducts();
+            updateFinalValue();
+        }
 
-    const searchInput = document.getElementById('search');
-    const searchResults = document.getElementById('search-results');
+        function renderSelectedProducts() {
+            selectedProductsDiv.innerHTML = '';
 
-    searchInput.addEventListener('input', (event) => {
-        const query = event.target.value;
+            selectedProducts.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('mb-2');
 
-        if (query.length >= 3) {
-            fetch(`/products/search?query=${encodeURIComponent(query)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    searchResults.innerHTML = '';
+                const label = document.createElement('label');
+                const price = parseFloat(product.price);
+                label.textContent = `${product.name} (R$ ${price.toFixed(2).replace('.', ',')}) - Quantidade:`;
+                productDiv.appendChild(label);
 
-                    data.data.forEach(product => {
-                        const result = document.createElement('div');
-                        result.classList.add('search-result');
-                        result.textContent = product.name;
-                        result.dataset.productId = product.id;
-
-                        result.addEventListener('mousedown', (event) => {
-                            event.preventDefault();
-                            addProduct(product);
-                            searchResults.innerHTML = '';
-                            searchResults.innerHTML = '';
-                            searchInput.value = '';
-
-                            // Limpa o campo de pesquisa e resultados
-
-                        });
-
-                        searchResults.appendChild(result);
-                    });
-                })
-                .catch(function() {
-                    console.log("A requisição falhou.");
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.min = 1;
+                quantityInput.value = product.quantity;
+                quantityInput.style.width = '50px';
+                quantityInput.addEventListener('change', () => {
+                    product.quantity = parseInt(quantityInput.value);
+                    updateFinalValue();
                 });
-        } else {
-            searchResults.innerHTML = '';
+
+                productDiv.appendChild(quantityInput);
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remover';
+                removeButton.classList.add('btn', 'btn-danger', 'ml-2');
+                removeButton.addEventListener('click', () => {
+                    removeProduct(product.id);
+                });
+
+                productDiv.appendChild(removeButton);
+
+                const productInput = document.createElement('input');
+                productInput.type = 'hidden';
+                productInput.name = 'products[]';
+                productInput.value = JSON.stringify({id: product.id, quantity: product.quantity});
+                productDiv.appendChild(productInput);
+
+                selectedProductsDiv.appendChild(productDiv);
+            });
         }
-    });
-</script>
+
+        saleForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            if (selectedProducts.length === 0) {
+                alert('Por favor, adicione ao menos um produto à venda.');
+                return;
+            }
+
+            saleForm.submit();
+        });
+
+        const searchInput = document.getElementById('search');
+        const searchResults = document.getElementById('search-results');
+
+        searchInput.addEventListener('input', (event) => {
+            const query = event.target.value;
+
+            if (query.length >= 3) {
+                fetch(`/products/search?query=${encodeURIComponent(query)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        searchResults.innerHTML = '';
+
+                        data.data.forEach(product => {
+                            const result = document.createElement('div');
+                            result.classList.add('search-result');
+                            result.textContent = product.name;
+                            result.dataset.productId = product.id;
+
+                            result.addEventListener('mousedown', (event) => {
+                                event.preventDefault();
+                                addProduct(product);
+                                searchResults.innerHTML = '';
+                                searchInput.value = '';
+
+                                // Limpa o campo de pesquisa e resultados
+
+                            });
+
+                            searchResults.appendChild(result);
+                        });
+                    })
+                    .catch(function() {
+                        console.log("A requisição falhou.");
+                    });
+            } else {
+                searchResults.innerHTML = '';
+            }
+        });
+    </script>
 </x-app-layout>
-        
+
